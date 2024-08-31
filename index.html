@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoliker Explore by xhilli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        input, button, textarea {
+            margin: 10px 0;
+            padding: 10px;
+            width: 80%;
+            font-size: 16px;
+        }
+
+        .reactions {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        #delayDisplay {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Autoliker Explore by chilli</h1>
+        <textarea id="cookieInput" placeholder="Enter your Facebook cookies here"></textarea>
+        <input type="text" id="postUrl" placeholder="Enter the URL of the post to boost" />
+        <div class="reactions">
+            <label><input type="checkbox" value="like" /> Like</label>
+            <label><input type="checkbox" value="love" /> Love</label>
+            <label><input type="checkbox" value="care" /> Care</label>
+            <label><input type="checkbox" value="haha" /> Haha</label>
+            <label><input type="checkbox" value="wow" /> Wow</label>
+            <label><input type="checkbox" value="sad" /> Sad</label>
+            <label><input type="checkbox" value="angry" /> Angry</label>
+        </div>
+        <button id="startButton">Start</button>
+        <div id="output"></div>
+        <div id="delayDisplay"></div>
+    </div>
+
+    <script>
+        document.getElementById('startButton').addEventListener('click', function () {
+            const cookie = document.getElementById('cookieInput').value.trim();
+            const postUrl = document.getElementById('postUrl').value.trim();
+            const selectedReactions = Array.from(document.querySelectorAll('.reactions input:checked')).map(el => el.value);
+
+            if (!cookie || !postUrl || selectedReactions.length === 0) {
+                alert('Please enter the cookie, post URL, and select at least one reaction.');
+                return;
+            }
+
+            displayMessage('Starting process...');
+
+            let delay = 0;
+            let count = 0;
+
+            function displayMessage(message) {
+                document.getElementById('output').textContent = message;
+            }
+
+            function countdown(delay) {
+                let delayDisplay = document.getElementById('delayDisplay');
+                let interval = setInterval(() => {
+                    if (delay <= 0) {
+                        clearInterval(interval);
+                        delayDisplay.textContent = '';
+                        return;
+                    }
+                    delayDisplay.textContent = `Please wait ${delay--} seconds`;
+                }, 1000);
+            }
+
+            function simulateReaction(cookie) {
+                const headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'User-Agent': 'Mozilla/5.0'
+                };
+
+                const data = new URLSearchParams({
+                    url: postUrl,
+                    limit: '20',
+                    'reactions[]': selectedReactions,
+                });
+
+                // Simulating an HTTP request
+                fetch('https://machineliker.net/auto-reactions', {
+                    method: 'POST',
+                    headers: headers,
+                    body: data,
+                    credentials: 'include'
+                }).then(response => response.text())
+                  .then(responseText => {
+                    if (responseText.includes('Error!') && responseText.includes("please try again after")) {
+                        let minutes = parseInt(responseText.match(/please try again after (\d+) minutes/)[1]);
+                        delay = minutes * 60;
+                        displayMessage(`Error! Cooldown period detected. Please wait ${delay} seconds.`);
+                    } else if (responseText.includes('Order Submitted')) {
+                        count += 1;
+                        displayMessage(`Successfully increased +20 reactions [${count}]`);
+                        delay = 1200; // 20 minutes cooldown
+                    } else {
+                        displayMessage('Error');
+                    }
+                    countdown(delay);
+                }).catch(error => {
+                    displayMessage('An error occurred: ' + error.message);
+                });
+            }
+
+            simulateReaction(cookie);
+        });
+    </script>
+</body>
+</html>
