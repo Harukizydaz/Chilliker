@@ -37,7 +37,7 @@ class Machine {
                 'hash': hash
             });
 
-            const response = await fetch('https://machineliker.net/auto-reactions', {
+            const response = await fetch('https://example.com/api/react', {
                 method: 'POST',
                 headers: this.headers_buff,
                 body: data_buff
